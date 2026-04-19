@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>자전거 네비게이션</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    <div id="app">
+        <div id="header">
+            <div id="title-row">
+                <span id="title-icon">🚴</span>
+                <h1>자전거 경로 추천</h1>
+            </div>
+
+            <div id="controls">
+                <div class="control-item">
+                    <label>탐색 반경</label>
+                    <div class="slider-row">
+                        <input type="range" id="radius" min="1" max="10" value="3" step="1"/>
+                        <span id="radius-value">3 km</span>
+                    </div>
+                </div>
+                <button id="find-btn" onclick="findBikeRoads()">
+                    주변 자전거도로 찾기
+                </button>
+            </div>
+
+            <div id="status">GPS 위치를 가져오는 중...</div>
+
+            <div id="legend">
+                <span class="legend-item"><span class="dot" style="background:#00C853"></span>자전거전용</span>
+                <span class="legend-item"><span class="dot" style="background:#64DD17"></span>자전거가능</span>
+                <span class="legend-item"><span class="dot" style="background:#2196F3"></span>일반도로</span>
+                <span class="legend-item"><span class="dot" style="background:#9E9E9E"></span>기타</span>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
