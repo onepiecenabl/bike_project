@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls *)",
+      "Bash(python3 -c ' import json, sys with open\\('\\\\''__TRACKED_VAR__'\\\\''\\) as fh: for line in fh: try: obj = json.loads\\(line\\) if obj.get\\('\\\\''type'\\\\''\\) == '\\\\''assistant'\\\\'': for c in obj.get\\('\\\\''message'\\\\'', {}\\).get\\('\\\\''content'\\\\'', []\\): if c.get\\('\\\\''type'\\\\''\\) == '\\\\''tool_use'\\\\'': name = c.get\\('\\\\''name'\\\\'', '\\\\'''\\\\''\\) if name == '\\\\''Bash'\\\\'': cmd = c.get\\('\\\\''input'\\\\'', {}\\).get\\('\\\\''command'\\\\'', '\\\\'''\\\\''\\) print\\('\\\\''BASH\\\\t'\\\\'' + cmd.split\\(\\)[0] if cmd.strip\\(\\) else '\\\\'''\\\\''\\) elif name.startswith\\('\\\\''mcp__'\\\\''\\): print\\('\\\\''MCP\\\\t'\\\\'' + name\\) except: pass ' done)",
+      "Bash(python3 *)",
+      "Bash(py *)"
+    ]
+  }
+}

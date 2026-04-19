@@ -1,0 +1,19 @@
+추천 방향
+PWA (Progressive Web App) 방식 추천
+
+앱스토어 등록 없이 모바일 브라우저에서 앱처럼 동작
+React Native보다 훨씬 단순한 구조
+GPS, 지도 기능 모두 지원
+기술 스택
+역할	기술
+지도 UI	Leaflet.js (무료)
+프론트엔드	HTML + JavaScript (React 없이)
+백엔드	Python FastAPI
+자전거 도로 데이터	OSMnx + OpenStreetMap
+경사도	Open-Elevation API (무료)
+배포	Render.com (무료 플랜)
+개발 단계
+Phase 1 — 현재 위치 표시 + 주변 자전거도로 시각화
+Phase 2 — 경사도 분석 + 순환 경로 생성
+Phase 3 — 붐비는 정도 가중치 + 거리 설정 UI
+Phase 4 — PWA 패키징 + 배포
