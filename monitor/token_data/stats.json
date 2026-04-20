@@ -1,0 +1,10 @@
+{
+  "total_input": 1250000,
+  "total_output": 450000,
+  "cost": 0.0475,
+  "logs": [
+    {"time": "14:00", "task": "Bike Route Logic", "input": 4500, "output": 1200, "cost": 0.00},
+    {"time": "14:05", "task": "Map UI (Leaflet)", "input": 6000, "output": 3000, "cost": 0.00},
+    {"time": "14:10", "task": "Server Setup", "input": 5000, "output": 2000, "cost": 0.00}
+  ]
+}

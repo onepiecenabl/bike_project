@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚲 Bike Task Monitor</title>
+    <style>
+        :root { --bg: #1a1a2e; --card: #16213e; --primary: #0f3460; --accent: #e94560; --text: #ffffff; --green: #00ff9d; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; margin: 0; padding: 20px; }
+        h1 { color: var(--accent); text-align: center; text-shadow: 0 0 10px var(--accent); }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #2ea; border-color: var(--accent); }
+        .stat-title { font-size: 0.9em; color: #f0f0f0; opacity: 0.8; }
+        .stat-value { font-size: 2em; font-weight: bold; color: var(--green); margin-top: 5px; }
+        .log-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border-bottom: 1px solid #2ea; padding: 10px; text-align: left; }
+        th { color: var(--accent); }
+        .refresh-btn { background: var(--accent); color: white; border: none; padding: 10px 20px; font-size: 1em; border-radius: 5px; cursor: pointer; display: block; margin: 20px auto; }
+        .refresh-btn:hover { background: #c32d47; }
+    </style>
+</head>
+<body>
+    <h1>🚲 Bike Path Finder - 작업량 리포트</h1>
+    <button class="refresh-btn" onclick="fetchStats()">🔄 새로고침</button>
+    
+    <div class="dashboard">
+        <div class="card">
+            <div class="stat-title">입력 토큰 (Input)</div>
+            <div class="stat-value" id="input">0</div>
+        </div>
+        <div class="card">
+            <div class="stat-title">출력 토큰 (Output)</div>
+            <div class="stat-value" id="output">0</div>
+        </div>
+        <div class="card">
+            <div class="stat-title">예상 비용 (Cost)</div>
+            <div class="stat-value" id="cost">$0.00</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h3>📑 최근 작업 로그</h3>
+        <table class="log-table">
+            <thead><tr><th>시간</th><th>작업명</th><th>Input</th><th>Output</th></tr></thead>
+            <tbody id="logs">
+                <tr><td colspan="4" style="text-align:center;">로딩 중...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchStats() {
+            try {
+                const res = await fetch('http://127.0.0.1:8080/api/stats');
+                const data = await res.json();
+                
+                document.getElementById('input').innerText = data.total_input.toLocaleString();
+                document.getElementById('output').innerText = data.total_output.toLocaleString();
+                document.getElementById('cost').innerText = '$' + (data.cost || 0).toFixed(5);
+
+                const logs = data.logs || [];
+                const tbody = document.getElementById('logs');
+                if(logs.length > 0) {
+                    tbody.innerHTML = logs.map(l => `<tr><td>${l.time}</td><td>${l.task}</td><td>${l.input}</td><td>${l.output}</td></tr>`).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">데이터 없음</td></tr>';
+                }
+            } catch(e) {
+                document.getElementById('logs').innerHTML = '<tr><td colspan="4" style="color:red">서버 연결 실패</td></tr>';
+            }
+        }
+        // 5초마다 자동 갱신
+        fetchStats();
+        setInterval(fetchStats, 5000);
+    </script>
+</body>
+</html>

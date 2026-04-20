@@ -1,126 +1,92 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>자전거 네비게이션</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <link rel="stylesheet" href="style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>자전거 길 안내기</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
+    <div id="app">
+        <div id="header">
+            <div id="title-row">
+                <span id="title-icon">🚲</span>
+                <h1>Bike Path Finder</h1>
+            </div>
+            <div id="tabs">
+                <button class="tab active" data-mode="roads">자전거도로</button>
+                <button class="tab" data-mode="route">길찾기</button>
+            </div>
 
-    <!-- ── Header ── -->
-    <div id="header">
-        <div id="title-row">
-            <span id="title-icon">🚴</span>
-            <h1>자전거 네비게이션</h1>
-        </div>
+            <!-- Roads Panel -->
+            <div id="roads-panel">
+                <div id="roads-controls">
+                    <div class="control-item">
+                        <label>탐색 반경</label>
+                        <div class="slider-row">
+                            <input type="range" id="radius" min="1" max="25" value="1">
+                            <span id="radius-value">1 km</span>
+                        </div>
+                    </div>
+                    <button id="find-btn">🔍 발견하기</button>
+                </div>
+                <div id="legend"></div>
+            </div>
 
-        <div id="tabs">
-            <button class="tab active" data-mode="roads" onclick="switchMode('roads')">도로 탐색</button>
-            <button class="tab"        data-mode="route" onclick="switchMode('route')">경로 찾기</button>
-        </div>
-
-        <!-- 도로 탐색 패널 -->
-        <div id="roads-panel" class="mode-panel">
-            <div id="roads-controls">
-                <div class="control-item">
-                    <label>탐색 반경</label>
-                    <div class="slider-row">
-                        <input type="range" id="radius" min="1" max="10" value="3" step="1"/>
-                        <span id="radius-value">3 km</span>
+            <!-- Route Panel -->
+            <div id="route-panel" class="hidden">
+                <div class="waypoint-group">
+                    <div class="waypoint-row">
+                        <span class="wp-dot wp-start"></span>
+                        <div class="search-wrap">
+                            <input id="from-input" type="text" placeholder="출발지 입력 또는 지도 클릭" autocomplete="off">
+                            <div id="from-results" class="search-results hidden"></div>
+                        </div>
+                        <button class="icon-btn" onclick="useMyLocation('from')" title="현재 위치">📍</button>
+                    </div>
+                    <div class="wp-connector"><div class="connector-line"></div></div>
+                    <div class="waypoint-row">
+                        <span class="wp-dot wp-end"></span>
+                        <div class="search-wrap">
+                            <input id="to-input" type="text" placeholder="목적지 입력 또는 지도 클릭" autocomplete="off">
+                            <div id="to-results" class="search-results hidden"></div>
+                        </div>
+                        <button class="icon-btn" onclick="useMyLocation('to')" title="현재 위치">📍</button>
                     </div>
                 </div>
-                <button id="find-btn" onclick="findBikeRoads()">주변 자전거도로 찾기</button>
+                <button id="route-btn" class="hidden">🌐 경로 찾기</button>
+                <button id="clear-btn" class="hidden" style="width:100%; background:none; border:none; color:#78909c; font-size:0.8rem; margin-bottom:8px; cursor:pointer;">✕ 지우기</button>
+                <div id="route-stats" class="hidden">
+                    <div class="stat-item"><span class="stat-icon">📏</span><span id="stat-dist">-</span></div>
+                    <div class="stat-item"><span class="stat-icon">⏱</span><span id="stat-time">-</span></div>
+                </div>
             </div>
-            <div id="legend">
-                <span class="legend-item"><span class="dot" style="background:#00C853"></span>자전거전용</span>
-                <span class="legend-item"><span class="dot" style="background:#64DD17"></span>자전거가능</span>
-                <span class="legend-item"><span class="dot" style="background:#2196F3"></span>일반도로</span>
-                <span class="legend-item"><span class="dot" style="background:#9E9E9E"></span>기타</span>
-            </div>
+
+            <button id="dir-toggle-btn" class="hidden" onclick="toggleDirections()">길안내 ▼</button>
+            <div id="status"></div>
         </div>
 
-        <!-- 경로 찾기 패널 -->
-        <div id="route-panel" class="mode-panel hidden">
+        <div id="map"></div>
 
-            <div class="waypoint-group">
-                <!-- 출발지 -->
-                <div class="waypoint-row">
-                    <div class="wp-dot wp-start"></div>
-                    <div class="search-wrap">
-                        <input type="text" id="from-input"
-                               placeholder="출발지 검색 또는 지도 클릭"
-                               autocomplete="off"
-                               onfocus="onInputFocus('from')"
-                               oninput="onInputChange('from')"/>
-                        <div id="from-results" class="search-results hidden"></div>
-                    </div>
-                    <button class="icon-btn" onclick="useMyLocation('from')" title="현재 위치">📍</button>
-                </div>
-
-                <div class="wp-connector"><div class="connector-line"></div></div>
-
-                <!-- 목적지 -->
-                <div class="waypoint-row">
-                    <div class="wp-dot wp-end"></div>
-                    <div class="search-wrap">
-                        <input type="text" id="to-input"
-                               placeholder="목적지 검색 또는 지도 클릭"
-                               autocomplete="off"
-                               onfocus="onInputFocus('to')"
-                               oninput="onInputChange('to')"/>
-                        <div id="to-results" class="search-results hidden"></div>
-                    </div>
-                    <button class="icon-btn danger-btn" onclick="clearRoute()" title="초기화">✕</button>
-                </div>
-            </div>
-
-            <button id="route-btn" onclick="findRoute()" disabled>경로 찾기</button>
-
-            <!-- 결과 통계 (경로 찾은 후 표시) -->
-            <div id="route-stats" class="hidden">
-                <div class="stat-item">
-                    <span class="stat-icon">📏</span>
-                    <span id="stat-dist">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">⏱</span>
-                    <span id="stat-time">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🚲</span>
-                    <span>15 km/h 기준</span>
-                </div>
-                <button id="dir-toggle-btn" onclick="toggleDirections()">길안내 ▲</button>
-            </div>
+        <div id="map-hint" class="hidden">
+            <span id="map-hint-text"></span>
+            <button onclick="cancelMapClick()">취소</button>
         </div>
 
-        <div id="status"></div>
-    </div>
-
-    <!-- ── Map ── -->
-    <div id="map"></div>
-
-    <!-- ── 지도 클릭 안내 힌트 ── -->
-    <div id="map-hint" class="hidden">
-        <span id="map-hint-text">지도를 클릭하여 위치를 설정하세요</span>
-        <button onclick="cancelMapClick()">취소</button>
-    </div>
-
-    <!-- ── 길안내 패널 (하단 시트) ── -->
-    <div id="directions-panel" class="hidden">
-        <div id="directions-header">
-            <span>길안내</span>
-            <button onclick="toggleDirections()">✕</button>
+        <div id="directions-panel" class="hidden">
+            <div id="directions-header">
+                <span>길안내</span>
+                <button onclick="toggleDirections()">▲</button>
+            </div>
+            <div id="directions-list"></div>
         </div>
-        <div id="directions-list"></div>
     </div>
 
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
