@@ -1,0 +1,33 @@
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+server.log
+web.log
+
+# Cache files
+backend/cache/
+monitor/token_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OSRM / OSMnx downloaded data
+.osmnx/
+graphs/

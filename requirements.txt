@@ -1,6 +1,7 @@
-fastapi
-uvicorn[standard]
-osmnx
-geopandas
-networkx
-shapely
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+osmnx>=2.0.0
+geopandas>=1.0.0
+shapely>=2.0.0
+networkx>=3.3
+requests>=2.32.0

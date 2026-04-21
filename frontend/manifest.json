@@ -1,0 +1,22 @@
+{
+  "name": "자전거 길 안내기",
+  "short_name": "BikeNav",
+  "description": "자전거 도로 탐색 및 경로 안내 PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#4fc3f7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

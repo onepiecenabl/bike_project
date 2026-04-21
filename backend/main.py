@@ -1,4 +1,8 @@
-from fastapi import FastAPI, HTTPException
+"""
+Bike Path Finder — 통합 백엔드
+모든 API 엔드포인트 + 프론트엔드 정적 파일 serving
+"""
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -16,7 +20,8 @@ app = FastAPI(title="자전거 네비게이션")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -82,7 +87,6 @@ def _build_steps(G, route_nodes, route_gdf) -> list:
     if not rows:
         return []
 
-    # Group consecutive edges by street name
     groups = []
     cur_name = _edge_name(rows[0][1])
     cur_dist = 0.0
@@ -131,7 +135,12 @@ def _build_steps(G, route_nodes, route_gdf) -> list:
     return steps
 
 
-# ── API Endpoints ──────────────────────────────────────────────────────────────
+# ── API Endpoints ──
+
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok"}
+
 
 @app.get("/api/bike-roads")
 async def get_bike_roads(lat: float, lng: float, radius: int = 3000):
@@ -145,6 +154,25 @@ async def get_bike_roads(lat: float, lng: float, radius: int = 3000):
         return geojson
     except Exception as e:
         logger.error(f"bike-roads 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/cycleways")
+async def get_nearby_cycleways(lat: float = Query(...), lon: float = Query(...), dist: int = 500):
+    try:
+        G = ox.graph_from_point((lat, lon), dist=dist, network_type="bike")
+        edges = ox.graph_to_gdfs(G, nodes=False, edges=True)
+        safe_types = ["cycleway", "path", "footway", "pedestrian",
+                      "residential", "living_street", "service"]
+        cycle_edges = edges[edges["highway"].isin(safe_types)]
+        geojson = cycle_edges.to_crs("EPSG:4326").__geo_interface__
+        return {
+            "center": {"lat": lat, "lon": lon},
+            "count": len(geojson["features"]),
+            "geojson": geojson,
+        }
+    except Exception as e:
+        logger.error(f"cycleways 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -172,7 +200,7 @@ async def get_route(from_lat: float, from_lng: float, to_lat: float, to_lng: flo
         route_gdf = ox.routing.route_to_gdf(G, route_nodes)
 
         total_dist = float(route_gdf["length"].sum())
-        duration_sec = total_dist / (15_000 / 3600)  # 15 km/h 기준
+        duration_sec = total_dist / (15_000 / 3600)
 
         steps = _build_steps(G, route_nodes, route_gdf)
         route_geojson = json.loads(route_gdf.to_json())
@@ -205,7 +233,9 @@ async def geocode(q: str):
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
+        logger.error(f"geocode 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Serve frontend as static files
 app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
